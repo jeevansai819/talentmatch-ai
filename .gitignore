@@ -28,6 +28,7 @@ htmlcov/
 *.sqlite3
 uploads/*
 !uploads/.gitkeep
+talentmatch.db
 .env
 .vscode/
 .idea/
