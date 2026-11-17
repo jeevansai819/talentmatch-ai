@@ -1,0 +1,119 @@
+{% extends "base.html" %}
+
+{% block page_title %}Resume Upload & NLP Extraction{% endblock %}
+
+{% block extra_head %}
+<style>
+    .upload-zone {
+        border: 2px dashed #cbd5e1;
+        border-radius: 16px;
+        background: #ffffff;
+        padding: 3.5rem 2rem;
+        text-align: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+    .upload-zone:hover {
+        border-color: var(--primary);
+        background: #f8fafc;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div style="max-width:900px; margin:0 auto">
+    <!-- Header -->
+    <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:1.4rem; font-weight:700; color:#0f172a">Batch Resume Upload</h2>
+        <p style="color:#64748b; font-size:0.9rem">
+            Upload multiple PDF resumes simultaneously. The pipeline extracts text with PyMuPDF, detects technical skills, and creates candidate profiles automatically.
+        </p>
+    </div>
+
+    <!-- Drag-and-Drop Dropzone -->
+    <div id="dropzone" class="upload-zone card">
+        <input type="file" id="file-input" multiple accept=".pdf" style="display:none">
+        <div style="width:56px; height:56px; border-radius:50%; background:#eef2ff; color:#4f46e5; display:flex; align-items:center; justify-content:center; margin:0 auto 1.25rem; font-size:1.6rem">
+            📄
+        </div>
+        <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.35rem">
+            Drag & Drop PDF Resumes Here
+        </h3>
+        <p style="color:#64748b; font-size:0.875rem; margin-bottom:1rem">
+            or <span style="color:#4f46e5; font-weight:600; text-decoration:underline">browse files from your computer</span>
+        </p>
+        <div style="font-size:0.78rem; color:#94a3b8">
+            Supports multiple searchable PDF files up to {{ max_size_mb }}MB each. Encrypted PDFs are rejected.
+        </div>
+    </div>
+
+    <!-- Selected Files List -->
+    <div id="selected-files-list" style="margin-top:1.5rem"></div>
+
+    <!-- Action & Progress Bar -->
+    <div style="margin-top:1rem; display:flex; justify-content:flex-end">
+        <button type="button" id="upload-btn" class="btn btn-primary" disabled style="padding:0.75rem 1.75rem">
+            Upload Selected Resumes
+        </button>
+    </div>
+
+    <div id="progress-container" style="display:none; margin-top:1.5rem">
+        <div style="display:flex; justify-content:space-between; font-size:0.85rem; font-weight:600; margin-bottom:0.4rem">
+            <span id="progress-status" style="color:#4f46e5">Processing resumes...</span>
+        </div>
+        <div class="progress-bar-bg">
+            <div id="progress-bar" class="progress-bar-fill" style="width:0%; background:#4f46e5"></div>
+        </div>
+    </div>
+
+    <!-- Processed Results Card -->
+    <div id="results-container" style="display:none; margin-top:2rem">
+        <h3 style="font-size:1.1rem; font-weight:700; color:#0f172a; margin-bottom:1rem">Extraction Results</h3>
+        <div id="results-list"></div>
+    </div>
+
+    <!-- Recent Uploads History Table -->
+    {% if recent_resumes %}
+    <div class="card" style="margin-top:2.5rem">
+        <h3 style="font-size:1.1rem; font-weight:700; color:#0f172a; margin-bottom:1rem">Recently Processed Resumes</h3>
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Filename</th>
+                        <th>Candidate Profile</th>
+                        <th>File Size</th>
+                        <th>Upload Date</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for r in recent_resumes %}
+                    <tr>
+                        <td>
+                            <div style="font-weight:600; color:#0f172a">{{ r.original_filename }}</div>
+                            <div style="font-size:0.75rem; color:#64748b">{{ r.mime_type }}</div>
+                        </td>
+                        <td>
+                            <a href="/candidates/{{ r.candidate_id }}" style="color:#4f46e5; font-weight:600; text-decoration:none">
+                                {{ r.candidate.name if r.candidate else 'Candidate #' ~ r.candidate_id }} →
+                            </a>
+                        </td>
+                        <td>{{ (r.file_size / 1024) | round(1) }} KB</td>
+                        <td>{{ r.created_at.strftime('%Y-%m-%d %H:%M') }}</td>
+                        <td>
+                            <a href="/api/resumes/{{ r.id }}/download" class="btn btn-secondary btn-sm" target="_blank" style="padding:0.25rem 0.55rem; font-size:0.78rem">Download PDF</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/upload.js"></script>
+{% endblock %}

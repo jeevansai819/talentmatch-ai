@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Registration – TalentMatch AI</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .auth-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 50% 0%, #eef2ff 0%, #f8fafc 80%);
+            padding: 1.5rem;
+        }
+        .auth-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 440px;
+            padding: 2.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div style="text-align:center; margin-bottom:1.75rem">
+                <div class="brand-icon" style="margin: 0 auto 0.75rem">T</div>
+                <h2 style="font-size:1.5rem; font-weight:700; color:#0f172a">Create Recruiter Account</h2>
+                <p style="font-size:0.875rem; color:#64748b">Set up your enterprise screening workspace</p>
+            </div>
+
+            <form id="register-form">
+                <div class="form-group">
+                    <label class="form-label" for="full_name">Full Name</label>
+                    <input type="text" id="full_name" class="form-control" placeholder="Sarah Jenkins" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="email">Work Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="s.jenkins@company.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password (Minimum 6 characters)</label>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" minlength="6" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="role">Role</label>
+                    <select id="role" class="form-control">
+                        <option value="recruiter">Recruiter / HR Professional</option>
+                        <option value="admin">Talent Acquisition Lead / Admin</option>
+                    </select>
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn btn-primary" style="width:100%; margin-top:0.5rem">
+                    Create Account & Continue →
+                </button>
+            </form>
+
+            <div style="text-align:center; margin-top:1.5rem; font-size:0.875rem; color:#64748b">
+                Already have an account? <a href="/login" style="color:#4f46e5; font-weight:600; text-decoration:none">Sign in</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="/static/js/main.js"></script>
+    <script>
+        document.getElementById('register-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const fullName = document.getElementById('full_name').value.trim();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const btn = document.getElementById('submit-btn');
+
+            btn.disabled = true;
+            btn.innerText = 'Creating account...';
+
+            try {
+                const res = await fetch('/api/auth/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ full_name: fullName, email, password, role })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    showToast('Account created! Logging in...', 'success');
+                    // Automatically log in
+                    const loginRes = await fetch('/api/auth/login', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email, password })
+                    });
+                    const loginData = await loginRes.json();
+                    if (loginRes.ok) {
+                        setAuthToken(loginData.access_token);
+                        setTimeout(() => window.location.href = '/dashboard', 600);
+                    } else {
+                        window.location.href = '/login';
+                    }
+                } else {
+                    showToast(data.detail || 'Registration failed.', 'error');
+                }
+            } catch (err) {
+                showToast('Network error during registration.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Create Account & Continue →';
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,188 @@
+{% extends "base.html" %}
+
+{% block page_title %}Recruiter Dashboard{% endblock %}
+
+{% block content %}
+<!-- KPI Metric Cards -->
+<div class="grid-4">
+    <div class="card stat-card">
+        <div>
+            <div class="stat-label">Total Resumes</div>
+            <div class="stat-val" id="kpi-resumes">{{ total_resumes }}</div>
+            <div style="font-size:0.8rem; color:#10b981; margin-top:0.25rem">PDF Extractions Active</div>
+        </div>
+        <div class="stat-icon-wrap" style="background:#eef2ff; color:#4f46e5">
+            <svg style="width:24px; height:24px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+        </div>
+    </div>
+
+    <div class="card stat-card">
+        <div>
+            <div class="stat-label">Active Job Postings</div>
+            <div class="stat-val" id="kpi-jobs">{{ total_jobs }}</div>
+            <div style="font-size:0.8rem; color:#0ea5e9; margin-top:0.25rem">Open Requisitions</div>
+        </div>
+        <div class="stat-icon-wrap" style="background:#e0f2fe; color:#0284c7">
+            <svg style="width:24px; height:24px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.22-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+        </div>
+    </div>
+
+    <div class="card stat-card">
+        <div>
+            <div class="stat-label">Candidates Processed</div>
+            <div class="stat-val" id="kpi-candidates">{{ total_candidates }}</div>
+            <div style="font-size:0.8rem; color:#6366f1; margin-top:0.25rem">Parsed via NLP</div>
+        </div>
+        <div class="stat-icon-wrap" style="background:#ede9fe; color:#7c3aed">
+            <svg style="width:24px; height:24px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg>
+        </div>
+    </div>
+
+    <div class="card stat-card">
+        <div>
+            <div class="stat-label">Average Match Score</div>
+            <div class="stat-val" id="kpi-avg-score">--%</div>
+            <div style="font-size:0.8rem; color:#f59e0b; margin-top:0.25rem">Compatibility Index</div>
+        </div>
+        <div class="stat-icon-wrap" style="background:#fef3c7; color:#d97706">
+            <svg style="width:24px; height:24px" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+        </div>
+    </div>
+</div>
+
+<!-- Workflow Action Cards -->
+<div class="grid-3" style="margin-bottom:2rem">
+    <div class="card" style="border-top:3px solid #4f46e5">
+        <h3 style="font-size:1.1rem; font-weight:700; color:#0f172a; margin-bottom:0.4rem">1. Upload Candidate Resumes</h3>
+        <p style="color:#64748b; font-size:0.88rem; margin-bottom:1.25rem">
+            Drag-and-drop batches of candidate PDF resumes. The system will extract text, technical skills, and experience automatically.
+        </p>
+        <a href="/upload" class="btn btn-outline btn-sm">Go to Resume Uploader →</a>
+    </div>
+
+    <div class="card" style="border-top:3px solid #06b6d4">
+        <h3 style="font-size:1.1rem; font-weight:700; color:#0f172a; margin-bottom:0.4rem">2. Create Job Posting</h3>
+        <p style="color:#64748b; font-size:0.88rem; margin-bottom:1.25rem">
+            Define requirements, specify must-have and preferred technical competencies, experience duration, and minimum qualifications.
+        </p>
+        <a href="/jobs" class="btn btn-outline btn-sm">Manage Job Postings →</a>
+    </div>
+
+    <div class="card" style="border-top:3px solid #10b981">
+        <h3 style="font-size:1.1rem; font-weight:700; color:#0f172a; margin-bottom:0.4rem">3. AI Screening & Rankings</h3>
+        <p style="color:#64748b; font-size:0.88rem; margin-bottom:1.25rem">
+            Calculate candidate-job compatibility scores, rank applicants from highest to lowest, and view detailed explainable reports.
+        </p>
+        <a href="/ranking" class="btn btn-primary btn-sm">Open Matching Dashboard →</a>
+    </div>
+</div>
+
+<!-- Two-Column Section: Active Jobs & Recent Candidates -->
+<div class="grid-2">
+    <!-- Active Jobs Card -->
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem">
+            <h3 style="font-size:1.1rem; font-weight:700; color:#0f172a">Active Job Descriptions</h3>
+            <a href="/jobs" class="btn btn-secondary btn-sm">View All Jobs</a>
+        </div>
+
+        {% if recent_jobs %}
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Job Title</th>
+                        <th>Department</th>
+                        <th>Required Exp</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for j in recent_jobs %}
+                    <tr>
+                        <td>
+                            <div style="font-weight:600; color:#0f172a">{{ j.title }}</div>
+                            <div style="font-size:0.75rem; color:#64748b">{{ j.location }} · {{ j.employment_type }}</div>
+                        </td>
+                        <td>{{ j.department }}</td>
+                        <td>{{ j.min_experience_years }} yrs</td>
+                        <td>
+                            <a href="/ranking?job_id={{ j.id }}" class="btn btn-primary btn-sm" style="padding:0.25rem 0.6rem; font-size:0.8rem">Rankings →</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align:center; padding:2rem; color:#64748b">
+            <p>No job descriptions created yet.</p>
+            <a href="/jobs" class="btn btn-primary btn-sm" style="margin-top:0.75rem">+ Create First Job</a>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Recent Candidates Card -->
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem">
+            <h3 style="font-size:1.1rem; font-weight:700; color:#0f172a">Recently Processed Candidates</h3>
+            <a href="/candidates" class="btn btn-secondary btn-sm">View All Candidates</a>
+        </div>
+
+        {% if recent_candidates %}
+        <div class="table-container">
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Candidate</th>
+                        <th>Experience</th>
+                        <th>Status</th>
+                        <th>Profile</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for c in recent_candidates %}
+                    <tr>
+                        <td>
+                            <div style="font-weight:600; color:#0f172a">{{ c.name }}</div>
+                            <div style="font-size:0.75rem; color:#64748b">{{ c.email or 'Email Unavailable' }}</div>
+                        </td>
+                        <td>{{ c.total_experience_years }} yrs</td>
+                        <td>
+                            <span class="badge badge-low">{{ c.current_status }}</span>
+                        </td>
+                        <td>
+                            <a href="/candidatesメカ/{{ c.id }}" class="btn btn-secondary btn-sm" style="padding:0.25rem 0.6rem; font-size:0.8rem" onclick="location.href='/candidates/{{ c.id }}'; return false;">View</a>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div style="text-align:center; padding:2rem; color:#64748b">
+            <p>No candidate resumes uploaded yet.</p>
+            <a href="/upload" class="btn btn-primary btn-sm" style="margin-top:0.75rem">+ Upload Resumes</a>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Fetch dashboard analytics for KPI cards
+    document.addEventListener('DOMContentLoaded', async () => {
+        try {
+            const res = await authFetch('/api/analytics/dashboard');
+            if (res.ok) {
+                const data = await res.json();
+                document.getElementById('kpi-resumes').innerText = data.total_resumes;
+                document.getElementById('kpi-jobs').innerText = data.total_active_jobs;
+                document.getElementById('kpi-candidates').innerText = data.total_candidates;
+                document.getElementById('kpi-avg-score').innerText = `${data.average_matching_score}%`;
+            }
+        } catch(e) {}
+    });
+</script>
+{% endblock %}

@@ -1,0 +1,213 @@
+{% extends "base.html" %}
+
+{% block page_title %}Shortlist Management & Exports{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+    <div>
+        <h2 style="font-size:1.3rem; font-weight:700; color:#0f172a">Candidate Shortlists</h2>
+        <p style="color:#64748b; font-size:0.875rem">Curate top talent cohorts for interview rounds and export reports.</p>
+    </div>
+    <button onclick="openModal('create-shortlist-modal')" class="btn btn-primary">+ Create New Shortlist</button>
+</div>
+
+<!-- Shortlists Grid -->
+{% if shortlists %}
+<div class="grid-3" style="margin-bottom:2rem">
+    {% for s in shortlists %}
+    <div class="card" style="display:flex; flex-direction:column; justify-content:space-between">
+        <div>
+            <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.5rem">
+                <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a">{{ s.name }}</h3>
+                <span class="badge badge-strong">{{ s.candidates|length }} Candidates</span>
+            </div>
+            <div style="font-size:0.82rem; color:#4f46e5; font-weight:600; margin-bottom:0.5rem">
+                🎯 Role: {{ s.job.title if s.job else 'General' }}
+            </div>
+            <p style="font-size:0.85rem; color:#64748b; margin-bottom:1rem">
+                {{ s.description or 'No description provided.' }}
+            </p>
+        </div>
+
+        <div style="display:flex; gap:0.5rem; border-top:1px solid #f1f5f9; padding-top:0.75rem">
+            <a href="/api/shortlists/{{ s.id }}/export/csv" class="btn btn-primary btn-sm" style="flex:1">
+                📥 Export CSV
+            </a>
+            <button onclick="deleteShortlist({{ s.id }})" class="btn btn-secondary btn-sm" style="color:#ef4444">
+                Delete
+            </button>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+
+<!-- Detailed Shortlist Candidates Table -->
+{% for s in shortlists %}
+<div class="card" style="margin-bottom:2rem">
+    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem">
+        <div>
+            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a">{{ s.name }} – Candidates List</h3>
+            <div style="font-size:0.82rem; color:#64748b">Associated Job: {{ s.job.title if s.job else 'N/A' }}</div>
+        </div>
+        <a href="/api/shortlists/{{ s.id }}/export/csv" class="btn btn-secondary btn-sm">Download CSV Export</a>
+    </div>
+
+    {% if s.candidates %}
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Experience</th>
+                    <th>Education</th>
+                    <th>Current Status</th>
+                    <th>Shortlist Notes</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for entry in s.candidates %}
+                {% set c = entry.candidate %}
+                <tr>
+                    <td>
+                        <div style="font-weight:700; color:#0f172a">
+                            <a href="/candidates/{{ c.id }}" style="color:#0f172a; text-decoration:none">{{ c.name }}</a>
+                        </div>
+                        <div style="font-size:0.75rem; color:#64748b">{{ c.email or 'No email' }}</div>
+                    </td>
+                    <td>{{ c.total_experience_years }} yrs</td>
+                    <td>{{ c.highest_education_level }}</td>
+                    <td><span class="badge badge-strong">{{ c.current_status }}</span></td>
+                    <td style="font-size:0.85rem; color:#334155; max-width:200px">{{ entry.notes or '—' }}</td>
+                    <td>
+                        <div style="display:flex; gap:0.4rem">
+                            <a href="/candidates/{{ c.id }}" class="btn btn-secondary btn-sm" style="padding:0.25rem 0.55rem; font-size:0.78rem">Profile</a>
+                            <button onclick="removeCandidateFromShortlist({{ s.id }}, {{ c.id }})" class="btn btn-secondary btn-sm" style="color:#ef4444; padding:0.25rem 0.55rem; font-size:0.78rem">Remove</button>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    {% else %}
+    <div style="text-align:center; padding:2rem; color:#64748b; font-size:0.9rem">
+        No candidates added to this shortlist yet. Screen candidates in <a href="/ranking" style="color:#4f46e5; font-weight:600">AI Match & Ranking</a>.
+    </div>
+    {% endif %}
+</div>
+{% endfor %}
+
+{% else %}
+<div class="card" style="text-align:center; padding:3rem">
+    <div style="font-size:2.5rem; margin-bottom:0.75rem">📁</div>
+    <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.4rem">No Shortlists Created</h3>
+    <p style="color:#64748b; font-size:0.9rem; max-width:450px; margin:0 auto 1.5rem">
+        Create a shortlist to group high-potential applicants for hiring manager review and export reports.
+    </p>
+    <button onclick="openModal('create-shortlist-modal')" class="btn btn-primary">+ Create First Shortlist</button>
+</div>
+{% endif %}
+
+<!-- Create Shortlist Modal -->
+<div id="create-shortlist-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="font-weight:700; font-size:1.15rem; color:#0f172a">Create New Shortlist</h3>
+            <button onclick="closeModal('create-shortlist-modal')" style="background:none; border:none; font-size:1.2rem; cursor:pointer">✕</button>
+        </div>
+        <form id="create-shortlist-form">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Shortlist Name *</label>
+                    <input type="text" id="shortlist-name" class="form-control" placeholder="e.g. Frontend Engineer - Round 1 Finalists" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Target Job Role *</label>
+                    <select id="shortlist-job" class="form-control" required>
+                        {% for j in jobs %}
+                        <option value="{{ j.id }}">{{ j.title }} ({{ j.department }})</option>
+                        {% else %}
+                        <option value="">No jobs available</option>
+                        {% endfor %}
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Description / Recruiter Purpose</label>
+                    <textarea id="shortlist-desc" class="form-control" rows="3" placeholder="Candidates possessing excellent system architecture skills selected for hiring manager screening..."></textarea>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal('create-shortlist-modal')" class="btn btn-secondary">Cancel</button>
+                <button type="submit" id="save-shortlist-btn" class="btn btn-primary">Create Shortlist</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('create-shortlist-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('save-shortlist-btn');
+        btn.disabled = true;
+
+        const payload = {
+            name: document.getElementById('shortlist-name').value.trim(),
+            job_id: parseInt(document.getElementById('shortlist-job').value),
+            description: document.getElementById('shortlist-desc').value.trim()
+        };
+
+        try {
+            const res = await authFetch('/api/shortlists', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Shortlist created successfully!', 'success');
+                setTimeout(() => window.location.reload(), 400);
+            } else {
+                showToast(data.detail || 'Failed to create shortlist.', 'error');
+            }
+        } catch(e) {
+            showToast('Network error while saving shortlist.', 'error');
+        } finally {
+            btn.disabled = false;
+        }
+    });
+
+    async function removeCandidateFromShortlist(shortlistId, candidateId) {
+        if (!confirm('Remove this candidate from the shortlist?')) return;
+        try {
+            const res = await authFetch(`/api/shortlists/${shortlistId}/candidates/${candidateId}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Candidate removed from shortlist.', 'info');
+                setTimeout(() => window.location.reload(), 300);
+            } else {
+                showToast('Failed to remove candidate.', 'error');
+            }
+        } catch(e) {
+            showToast('Error removing candidate.', 'error');
+        }
+    }
+
+    async function deleteShortlist(id) {
+        if (!confirm('Delete this shortlist? Candidate profiles will remain untouched.')) return;
+        try {
+            const res = await authFetch(`/api/shortlists/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Shortlist deleted.', 'info');
+                setTimeout(() => window.location.reload(), 300);
+            } else {
+                showToast('Failed to delete shortlist.', 'error');
+            }
+        } catch(e) {
+            showToast('Error deleting shortlist.', 'error');
+        }
+    }
+</script>
+{% endblock %}

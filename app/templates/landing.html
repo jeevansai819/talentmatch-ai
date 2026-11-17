@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TalentMatch AI – Intelligent Resume Screening & Job Matching Platform</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .hero-section {
+            padding: 5rem 2rem 4rem;
+            text-align: center;
+            background: radial-gradient(circle at top, #eef2ff 0%, #f8fafc 100%);
+            border-bottom: 1px solid var(--border-color);
+        }
+        .hero-title {
+            font-size: 3.2rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: #0f172a;
+            max-width: 850px;
+            margin: 0 auto 1.25rem;
+            line-height: 1.15;
+        }
+        .hero-title span {
+            background: linear-gradient(135deg, #4f46e5, #0ea5e9);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-desc {
+            font-size: 1.2rem;
+            color: #475569;
+            max-width: 650px;
+            margin: 0 auto 2rem;
+        }
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1.5rem;
+            max-width: 1200px;
+            margin: 3rem auto;
+            padding: 0 1.5rem;
+        }
+        .feature-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 1.75rem;
+            box-shadow: var(--shadow-sm);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+        .feature-card:hover {
+            transform: translateY(-3px);
+            box-shadow: var(--shadow-md);
+        }
+        .feature-icon {
+            width: 44px;
+            height: 44px;
+            background: #eef2ff;
+            color: #4f46e5;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body style="background:#ffffff">
+    <!-- Landing Navigation -->
+    <nav style="display:flex; justify-content:space-between; align-items:center; padding:1.25rem 3rem; border-bottom:1px solid #f1f5f9">
+        <div style="display:flex; align-items:center; gap:0.75rem">
+            <div class="brand-icon">T</div>
+            <div style="font-weight:700; font-size:1.25rem; color:#0f172a">TalentMatch AI</div>
+        </div>
+        <div style="display:flex; align-items:center; gap:1rem">
+            <a href="/login" class="btn btn-secondary">Recruiter Login</a>
+            <a href="/register" class="btn btn-primary">Start Free Trial →</a>
+        </div>
+    </nav>
+
+    <!-- Hero Banner -->
+    <header class="hero-section">
+        <div style="display:inline-block; padding:0.35rem 0.85rem; background:#eef2ff; color:#4f46e5; border-radius:9999px; font-size:0.85rem; font-weight:700; margin-bottom:1.25rem">
+            ✨ Next-Generation AI Candidate Intelligence
+        </div>
+        <h1 class="hero-title">Screen Resumes & Match Top Candidates with <span>Deterministic AI</span></h1>
+        <p class="hero-desc">
+            Instantly parse batches of PDF resumes with PyMuPDF, extract deep technical competencies using NLP, 
+            and rank candidates with transparent, explainable compatibility scores.
+        </p>
+        <div style="display:flex; justify-content:center; gap:1rem; flex-wrap:wrap">
+            <a href="/register" class="btn btn-primary" style="padding:0.8rem 1.75rem; font-size:1rem">Open Recruiter Workspace →</a>
+            <a href="/dashboard" class="btn btn-secondary" style="padding:0.8rem 1.75rem; font-size:1rem">Live Product Demo</a>
+        </div>
+    </header>
+
+    <!-- Platform Capabilities Grid -->
+    <section class="feature-grid">
+        <div class="feature-card">
+            <div class="feature-icon">⚡</div>
+            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem">PyMuPDF High-Speed Extraction</h3>
+            <p style="color:#64748b; font-size:0.92rem">
+                Batch upload multiple candidate resumes in PDF format. Real native text extraction with corruption detection, encryption checks, and size validation.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">🧠</div>
+            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem">NLP & Technical Skill Taxonomy</h3>
+            <p style="color:#64748b; font-size:0.92rem">
+                Identifies 1,000+ technical languages, frameworks, cloud infrastructure, and DevOps tools with multi-word phrase matching and canonical normalization.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">🎯</div>
+            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem">Explainable Weighted Scoring</h3>
+            <p style="color:#64748b; font-size:0.92rem">
+                Multi-dimensional matching combining Required Skills (40%), Preferred Skills (20%), Experience (20%), Education (10%), and TF-IDF Cosine Similarity (10%).
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">⚖️</div>
+            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem">Ethical & Bias-Free Screening</h3>
+            <p style="color:#64748b; font-size:0.92rem">
+                Zero utilization of protected personal attributes (gender, age, race, nationality). Distinguishes unavailable information from actual skill mismatches.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">📊</div>
+            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem">Executive PDF & CSV Reports</h3>
+            <p style="color:#64748b; font-size:0.92rem">
+                Generate downloadable ReportLab executive candidate screening summaries, side-by-side comparison tables, and 1-click shortlist CSV exports.
+            </p>
+        </div>
+
+        <div class="feature-card">
+            <div class="feature-icon">📈</div>
+            <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem">Real-Time Talent Analytics</h3>
+            <p style="color:#64748b; font-size:0.92rem">
+                Live dashboard visualizations showing candidate skill distributions, experience brackets, educational degrees, and score histograms from real database records.
+            </p>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer style="text-align:center; padding:3rem 1.5rem; border-top:1px solid #f1f5f9; color:#94a3b8; font-size:0.88rem">
+        <p>© 2026 TalentMatch AI Platform. Commercial-grade Intelligent Resume Screening & Job Matching.</p>
+    </footer>
+</body>
+</html>

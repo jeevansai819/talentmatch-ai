@@ -1,0 +1,88 @@
+{% extends "base.html" %}
+
+{% block page_title %}Recruitment Analytics & Insights{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:1.5rem">
+    <h2 style="font-size:1.3rem; font-weight:700; color:#0f172a">Talent Analytics & Screening Metrics</h2>
+    <p style="color:#64748b; font-size:0.875rem">Aggregated database metrics evaluating applicant volume, competencies, and match distributions.</p>
+</div>
+
+<!-- High-Level KPI Strip -->
+<div class="grid-4" style="margin-bottom:2rem">
+    <div class="card stat-card">
+        <div>
+            <div class="stat-label">Total Resumes Processed</div>
+            <div class="stat-val" id="kpi-resumes">--</div>
+        </div>
+        <div class="stat-icon-wrap" style="background:#eef2ff; color:#4f46e5">📄</div>
+    </div>
+
+    <div class="card stat-card">
+        <div>
+            <div class="stat-label">Active Requisitions</div>
+            <div class="stat-val" id="kpi-jobs">--</div>
+        </div>
+        <div class="stat-icon-wrap" style="background:#e0f2fe; color:#0284c7">💼</div>
+    </div>
+
+    <div class="card stat-card">
+        <div>
+            <div class="stat-label">Candidates in Pipeline</div>
+            <div class="stat-val" id="kpi-candidates">--</div>
+        </div>
+        <div class="stat-icon-wrap" style="background:#ede9fe; color:#7c3aed">👥</div>
+    </div>
+
+    <div class="card stat-card">
+        <div>
+            <div class="stat-label">Average Match Score</div>
+            <div class="stat-val" id="kpi-avg-score">--%</div>
+        </div>
+        <div class="stat-icon-wrap" style="background:#ecfdf5; color:#059669">🎯</div>
+    </div>
+</div>
+
+<!-- Charts Grid: 2x2 Layout -->
+<div class="grid-2">
+    <!-- Chart 1: Most Common Technical Skills -->
+    <div class="card">
+        <h3 style="font-size:1.05rem; font-weight:700; color:#0f172a; margin-bottom:0.25rem">Top Candidate Technical Skills</h3>
+        <p style="font-size:0.8rem; color:#64748b; margin-bottom:1rem">Most frequent programming languages and frameworks extracted via NLP.</p>
+        <div style="position:relative; height:280px">
+            <canvas id="skillsChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 2: Candidate Experience Distribution -->
+    <div class="card">
+        <h3 style="font-size:1.05rem; font-weight:700; color:#0f172a; margin-bottom:0.25rem">Experience Level Breakdown</h3>
+        <p style="font-size:0.8rem; color:#64748b; margin-bottom:1rem">Candidate distribution across professional seniority cohorts.</p>
+        <div style="position:relative; height:280px">
+            <canvas id="experienceChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 3: Match Score Histogram -->
+    <div class="card">
+        <h3 style="font-size:1.05rem; font-weight:700; color:#0f172a; margin-bottom:0.25rem">Match Score Distribution</h3>
+        <p style="font-size:0.8rem; color:#64748b; margin-bottom:1rem">Compatibility tiers across all evaluated candidate-job pairings.</p>
+        <div style="position:relative; height:280px">
+            <canvas id="scoreChart"></canvas>
+        </div>
+    </div>
+
+    <!-- Chart 4: Recruitment Status Funnel -->
+    <div class="card">
+        <h3 style="font-size:1.05rem; font-weight:700; color:#0f172a; margin-bottom:0.25rem">Candidate Pipeline Stages</h3>
+        <p style="font-size:0.8rem; color:#64748b; margin-bottom:1rem">Application status distribution across active candidate records.</p>
+        <div style="position:relative; height:280px">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/analytics.js"></script>
+{% endblock %}

@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Recruiter Login – TalentMatch AI</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <style>
+        .auth-wrapper {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at 50% 0%, #eef2ff 0%, #f8fafc 80%);
+            padding: 1.5rem;
+        }
+        .auth-card {
+            background: white;
+            border: 1px solid var(--border-color);
+            border-radius: 16px;
+            box-shadow: var(--shadow-lg);
+            width: 100%;
+            max-width: 420px;
+            padding: 2.25rem;
+        }
+    </style>
+</head>
+<body>
+    <div class="auth-wrapper">
+        <div class="auth-card">
+            <div style="text-align:center; margin-bottom:1.75rem">
+                <div class="brand-icon" style="margin: 0 auto 0.75rem">T</div>
+                <h2 style="font-size:1.5rem; font-weight:700; color:#0f172a">Recruiter Sign In</h2>
+                <p style="font-size:0.875rem; color:#64748b">Access your candidate screening platform</p>
+            </div>
+
+            <!-- Demo Account Autofill helper -->
+            <div style="background:#f1f5f9; border:1px solid #e2e8f0; border-radius:8px; padding:0.75rem; margin-bottom:1.25rem; font-size:0.82rem; color:#475569">
+                <div style="font-weight:600; margin-bottom:0.25rem">Quick Demo Login:</div>
+                <button type="button" id="demo-fill-btn" style="background:none; border:none; color:#4f46e5; font-weight:600; cursor:pointer; text-decoration:underline">
+                    Click to load demo recruiter credentials
+                </button>
+            </div>
+
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label" for="email">Work Email</label>
+                    <input type="email" id="email" class="form-control" placeholder="recruiter@company.com" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label" for="password">Password</label>
+                    <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+                </div>
+
+                <button type="submit" id="submit-btn" class="btn btn-primary" style="width:100%; margin-top:0.5rem">
+                    Sign In to Dashboard →
+                </button>
+            </form>
+
+            <div style="text-align:center; margin-top:1.5rem; font-size:0.875rem; color:#64748b">
+                Don't have an account? <a href="/register" style="color:#4f46e5; font-weight:600; text-decoration:none">Create one</a>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast-container"></div>
+    <script src="/static/js/main.js"></script>
+    <script>
+        document.getElementById('demo-fill-btn').addEventListener('click', () => {
+            document.getElementById('email').value = 'recruiter@talentmatch.ai';
+            document.getElementById('password').value = 'Recruiter123!';
+            showToast('Demo credentials populated.', 'info');
+        });
+
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value.trim();
+            const password = document.getElementById('password').value;
+            const btn = document.getElementById('submit-btn');
+
+            btn.disabled = true;
+            btn.innerText = 'Authenticating...';
+
+            try {
+                const res = await fetch('/api/auth/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                const data = await res.json();
+                if (res.ok) {
+                    setAuthToken(data.access_token);
+                    showToast('Login successful! Redirecting...', 'success');
+                    setTimeout(() => {
+                        window.location.href = '/dashboard';
+                    }, 500);
+                } else {
+                    showToast(data.detail || 'Login failed. Please verify credentials.', 'error');
+                }
+            } catch (err) {
+                showToast('Network error during authentication.', 'error');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = 'Sign In to Dashboard →';
+            }
+        });
+    </script>
+</body>
+</html>

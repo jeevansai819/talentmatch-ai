@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block page_title %}Candidate Directory{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+    <div>
+        <h2 style="font-size:1.3rem; font-weight:700; color:#0f172a">Candidate Roster</h2>
+        <p style="color:#64748b; font-size:0.875rem">Search, filter, and manage candidate application lifecycles.</p>
+    </div>
+    <a href="/upload" class="btn btn-primary">+ Upload Resumes</a>
+</div>
+
+<!-- Filters Bar -->
+<div class="card" style="margin-bottom:1.5rem; padding:1.25rem">
+    <div style="display:grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap:1rem; align-items:flex-end">
+        <div>
+            <label class="form-label">Search Candidates</label>
+            <input type="text" id="cand-search" class="form-control" placeholder="Search by name, email, city...">
+        </div>
+
+        <div>
+            <label class="form-label">Application Status</label>
+            <select id="cand-status-filter" class="form-control">
+                <option value="">All Statuses</option>
+                <option value="New">New</option>
+                <option value="Under Review">Under Review</option>
+                <option value="Shortlisted">Shortlisted</option>
+                <option value="Interview Scheduled">Interview Scheduled</option>
+                <option value="Rejected">Rejected</option>
+                <option value="Hired">Hired</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="form-label">Min. Experience (Years)</label>
+            <input type="number" id="cand-exp-filter" class="form-control" placeholder="0" min="0" step="0.5">
+        </div>
+
+        <div>
+            <label class="form-label">Education Level</label>
+            <select id="cand-edu-filter" class="form-control">
+                <option value="">All Degrees</option>
+                <option value="Ph.D">Ph.D. / Doctorate</option>
+                <option value="Master">Master's Degree</option>
+                <option value="Bachelor">Bachelor's Degree</option>
+                <option value="Associate">Associate / Diploma</option>
+            </select>
+        </div>
+    </div>
+</div>
+
+<!-- Candidates Table -->
+<div class="card">
+    <div class="table-container">
+        <table class="data-table" id="candidates-table">
+            <thead>
+                <tr>
+                    <th>Candidate</th>
+                    <th>Experience</th>
+                    <th>Highest Education</th>
+                    <th>Key Extracted Skills</th>
+                    <th>Status</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for c in candidates %}
+                <tr class="candidate-row" 
+                    data-name="{{ c.name|lower }}" 
+                    data-email="{{ (c.email or '')|lower }}" 
+                    data-status="{{ c.current_status }}" 
+                    data-exp="{{ c.total_experience_years }}"
+                    data-edu="{{ c.highest_education_level|lower }}">
+                    <td>
+                        <div style="font-weight:700; color:#0f172a">
+                            <a href="/candidates/{{ c.id }}" style="color:#0f172a; text-decoration:none">{{ c.name }}</a>
+                        </div>
+                        <div style="font-size:0.78rem; color:#64748b">
+                            {{ c.email or 'No email' }} {% if c.phone %}· {{ c.phone }}{% endif %}
+                        </div>
+                        {% if c.location %}
+                        <div style="font-size:0.75rem; color:#94a3b8">📍 {{ c.location }}</div>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <b>{{ c.total_experience_years }}</b> yrs
+                    </td>
+                    <td>
+                        <span style="font-size:0.85rem">{{ c.highest_education_level }}</span>
+                    </td>
+                    <td style="max-width:280px">
+                        {% for s in c.skills[:5] %}
+                        <span class="skill-chip">{{ s.skill_name }}</span>
+                        {% endfor %}
+                        {% if c.skills|length > 5 %}
+                        <span style="font-size:0.75rem; color:#64748b">+{{ c.skills|length - 5 }} more</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <select onchange="updateStatus({{ c.id }}, this.value)" class="form-control" style="padding:0.25rem 0.5rem; font-size:0.82rem; width:auto">
+                            <option value="New" {% if c.current_status == 'New' %}selected{% endif %}>New</option>
+                            <option value="Under Review" {% if c.current_status == 'Under Review' %}selected{% endif %}>Under Review</option>
+                            <option value="Shortlisted" {% if c.current_status == 'Shortlisted' %}selected{% endif %}>Shortlisted</option>
+                            <option value="Interview Scheduled" {% if c.current_status == 'Interview Scheduled' %}selected{% endif %}>Interview Scheduled</option>
+                            <option value="Rejected" {% if c.current_status == 'Rejected' %}selected{% endif %}>Rejected</option>
+                            <option value="Hired" {% if c.current_status == 'Hired' %}selected{% endif %}>Hired</option>
+                        </select>
+                    </td>
+                    <td>
+                        <div style="display:flex; gap:0.4rem">
+                            <a href="/candidates/{{ c.id }}" class="btn btn-primary btn-sm" style="padding:0.25rem 0.6rem; font-size:0.8rem">Profile →</a>
+                            <button onclick="deleteCandidate({{ c.id }})" class="btn btn-secondary btn-sm" style="color:#ef4444; padding:0.25rem 0.5rem">✕</button>
+                        </div>
+                    </td>
+                </tr>
+                {% else %}
+                <tr>
+                    <td colspan="6" style="text-align:center; padding:3rem; color:#64748b">
+                        No candidates found in the database. Upload resumes to populate this roster.
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const searchInput = document.getElementById('cand-search');
+    const statusFilter = document.getElementById('cand-status-filter');
+    const expFilter = document.getElementById('cand-exp-filter');
+    const eduFilter = document.getElementById('cand-edu-filter');
+    const rows = document.querySelectorAll('.candidate-row');
+
+    function filterTable() {
+        const query = searchInput.value.toLowerCase().trim();
+        const status = statusFilter.value;
+        const minExp = parseFloat(expFilter.value) || 0;
+        const edu = eduFilter.value.toLowerCase();
+
+        rows.forEach(row => {
+            const name = row.dataset.name || '';
+            const email = row.dataset.email || '';
+            const rStatus = row.dataset.status || '';
+            const exp = parseFloat(row.dataset.exp) || 0;
+            const rEdu = row.dataset.edu || '';
+
+            let matchText = !query || name.includes(query) || email.includes(query);
+            let matchStatus = !status || rStatus === status;
+            let matchExp = exp >= minExp;
+            let matchEdu = !edu || rEdu.includes(edu);
+
+            if (matchText && matchStatus && matchExp && matchEdu) {
+                row.style.display = '';
+            } else {
+                row.style.display = 'none';
+            }
+        });
+    }
+
+    searchInput.addEventListener('input', filterTable);
+    statusFilter.addEventListener('change', filterTable);
+    expFilter.addEventListener('input', filterTable);
+    eduFilter.addEventListener('change', filterTable);
+
+    async function updateStatus(id, newStatus) {
+        try {
+            const res = await authFetch(`/api/candidates/${id}/status`, {
+                method: 'PUT',
+                body: JSON.stringify({ status: newStatus, comment: `Recruiter updated status to ${newStatus}` })
+            });
+            if (res.ok) {
+                showToast(`Status updated to ${newStatus}.`, 'success');
+            } else {
+                showToast('Failed to update status.', 'error');
+            }
+        } catch(e) {
+            showToast('Error updating candidate status.', 'error');
+        }
+    }
+
+    async function deleteCandidate(id) {
+        if (!confirm('Are you sure you want to delete this candidate? All resume files and matching scores will be removed.')) return;
+        try {
+            const res = await authFetch(`/api/candidates/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Candidate deleted.', 'info');
+                setTimeout(() => window.location.reload(), 400);
+            } else {
+                showToast('Failed to delete candidate.', 'error');
+            }
+        } catch(e) {
+            showToast('Error deleting candidate.', 'error');
+        }
+    }
+</script>
+{% endblock %}

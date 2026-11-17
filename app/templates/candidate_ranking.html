@@ -1,0 +1,215 @@
+{% extends "base.html" %}
+
+{% block page_title %}Candidate AI Ranking & Screening{% endblock %}
+
+{% block content %}
+<!-- Top Control Bar -->
+<div class="card" style="margin-bottom:1.5rem; padding:1.25rem">
+    <div style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem">
+        <div style="display:flex; align-items:center; gap:1rem; flex:1; min-width:280px">
+            <label class="form-label" style="margin-bottom:0; white-space:nowrap">Screening Role:</label>
+            <select id="job-selector" class="form-control" style="max-width:380px">
+                {% for j in jobs %}
+                <option value="{{ j.id }}" {% if selected_job and selected_job.id == j.id %}selected{% endif %}>
+                    {{ j.title }} ({{ j.department }} · Min {{ j.min_experience_years }} yrs)
+                </option>
+                {% else %}
+                <option value="">No active jobs found. Create one first.</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <div style="display:flex; gap:0.75rem; flex-wrap:wrap">
+            {% if selected_job %}
+            <button id="run-match-btn" data-job-id="{{ selected_job.id }}" class="btn btn-primary">
+                ⚡ Run Matching Engine
+            </button>
+            <a href="/api/matching/{{ selected_job.id }}/export/pdf" class="btn btn-secondary" target="_blank">
+                📥 Export Executive PDF Report
+            </a>
+            <button id="compare-btn" class="btn btn-secondary">
+                ⚖ Compare Selected
+            </button>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+{% if selected_job %}
+<!-- Role Criteria Summary Strip -->
+<div class="card" style="margin-bottom:1.5rem; background:#f8fafc; border-left:4px solid var(--primary)">
+    <div style="display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:1rem">
+        <div>
+            <div style="font-size:1.15rem; font-weight:700; color:#0f172a">{{ selected_job.title }}</div>
+            <div style="font-size:0.85rem; color:#64748b; margin-top:0.2rem">
+                <b>Criteria:</b> Min. {{ selected_job.min_experience_years }} Years Experience | Education: {{ selected_job.required_education_level }} | Location: {{ selected_job.location }}
+            </div>
+        </div>
+        <div style="font-size:0.8rem; color:#475569">
+            <b>Scoring Weights:</b> Required Skills (40%) · Preferred Skills (20%) · Experience (20%) · Education (10%) · Semantic Match (10%)
+        </div>
+    </div>
+
+    <!-- Required & Preferred Skills list -->
+    <div style="margin-top:0.75rem; display:flex; flex-wrap:wrap; gap:0.5rem; align-items:center">
+        <span style="font-size:0.75rem; font-weight:700; color:#475569; text-transform:uppercase">Required Skills:</span>
+        {% for s in selected_job.required_skills %}
+        <span class="skill-chip" style="background:#eef2ff; color:#3730a3; font-weight:600">{{ s.skill_name }}</span>
+        {% else %}
+        <span style="font-size:0.8rem; color:#94a3b8">None specified</span>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Filters & Sorting Strip -->
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; flex-wrap:wrap; gap:1rem">
+    <div style="display:flex; gap:0.75rem; align-items:center; flex-wrap:wrap">
+        <select id="tier-filter" class="form-control" style="width:auto; font-size:0.85rem">
+            <option value="">All Match Tiers</option>
+            <option value="Excellent">Excellent Match (90–100%)</option>
+            <option value="Strong">Strong Match (75–89%)</option>
+            <option value="Moderate">Moderate Match (60–74%)</option>
+            <option value="Low">Low Match (< 60%)</option>
+        </select>
+
+        <input type="number" id="min-exp-filter" class="form-control" placeholder="Min. Years Exp" style="width:140px; font-size:0.85rem" min="0" step="0.5">
+    </div>
+
+    <div style="font-size:0.85rem; color:#64748b" id="rankings-count">
+        Rankings evaluated automatically via deterministic NLP & TF-IDF scoring.
+    </div>
+</div>
+
+<!-- Ranked Candidates Table -->
+<div class="card">
+    <div class="table-container">
+        <table class="data-table" id="rankings-table">
+            <thead>
+                <tr>
+                    <th style="width:36px"><input type="checkbox" id="select-all-compare"></th>
+                    <th style="width:50px">Rank</th>
+                    <th>Candidate</th>
+                    <th style="width:200px">Match Compatibility</th>
+                    <th>Matched Skills</th>
+                    <th>Experience</th>
+                    <th>Education</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody id="rankings-tbody">
+                <!-- Populated via Javascript from API -->
+                <tr>
+                    <td colspan="8" style="text-align:center; padding:2.5rem; color:#64748b">
+                        Loading candidate match rankings...
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+{% else %}
+<div class="card" style="text-align:center; padding:3rem">
+    <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.4rem">No Active Jobs</h3>
+    <p style="color:#64748b; font-size:0.9rem; margin-bottom:1rem">Please create a job posting first to run candidate screening.</p>
+    <a href="/jobs" class="btn btn-primary">+ Create Job Posting</a>
+</div>
+{% endif %}
+
+<!-- Comparison Modal -->
+<div id="comparison-modal" class="modal-overlay">
+    <div class="modal-content" style="max-width:950px">
+        <div class="modal-header">
+            <h3 style="font-weight:700; font-size:1.2rem; color:#0f172a">Side-by-Side Candidate Comparison</h3>
+            <button onclick="closeModal('comparison-modal')" style="background:none; border:none; font-size:1.2rem; cursor:pointer">✕</button>
+        </div>
+        <div class="modal-body" id="comparison-modal-body"></div>
+        <div class="modal-footer">
+            <button onclick="closeModal('comparison-modal')" class="btn btn-secondary">Close</button>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="/static/js/matching.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', async () => {
+        const jobId = "{{ selected_job.id if selected_job else '' }}";
+        if (!jobId) return;
+
+        const tbody = document.getElementById('rankings-tbody');
+
+        try {
+            const res = await authFetch(`/api/matching/${jobId}/results?limit=100`);
+            const data = await res.json();
+
+            if (res.ok && data.rankings && data.rankings.length > 0) {
+                tbody.innerHTML = '';
+                data.rankings.forEach(c => {
+                    const tierClass = c.overall_score >= 90 ? 'badge-excellent' : c.overall_score >= 75 ? 'badge-strong' : c.overall_score >= 60 ? 'badge-moderate' : 'badge-low';
+                    const fillClass = c.overall_score >= 90 ? '#10b981' : c.overall_score >= 75 ? '#6366f1' : c.overall_score >= 60 ? '#f59e0b' : '#94a3b8';
+
+                    const row = document.createElement('tr');
+                    row.className = 'candidate-rank-row';
+                    row.dataset.tier = c.match_tier;
+                    row.dataset.exp = c.total_experience_years;
+
+                    row.innerHTML = `
+                        <td><input type="checkbox" class="compare-checkbox" value="${c.candidate_id}"></td>
+                        <td style="font-weight:700; color:#475569">#${c.rank}</td>
+                        <td>
+                            <div style="font-weight:700; color:#0f172a">
+                                <a href="/candidates/${c.candidate_id}" style="color:#0f172a; text-decoration:none">${c.candidate_name}</a>
+                            </div>
+                            <div style="font-size:0.75rem; color:#64748b">${c.candidate_email || 'No email'}</div>
+                        </td>
+                        <td>
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.25rem">
+                                <span style="font-weight:800; font-size:1.05rem; color:#0f172a">${c.overall_score}%</span>
+                                <span class="badge ${tierClass}">${c.match_tier}</span>
+                            </div>
+                            <div class="progress-bar-bg" style="height:6px">
+                                <div class="progress-bar-fill" style="width:${c.overall_score}%; background:${fillClass}"></div>
+                            </div>
+                        </td>
+                        <td style="max-width:240px">
+                            <div style="display:flex; flex-wrap:wrap; gap:0.2rem">
+                                ${c.matched_required_skills.slice(0, 4).map(s => `<span class="skill-chip" style="background:#ecfdf5; color:#065f46; font-size:0.75rem">✓ ${s}</span>`).join('')}
+                                ${c.missing_required_skills.slice(0, 3).map(s => `<span class="skill-chip" style="background:#fef2f2; color:#991b1b; font-size:0.75rem">✕ ${s}</span>`).join('')}
+                            </div>
+                        </td>
+                        <td><b>${c.total_experience_years.toFixed(1)}</b> yrs</td>
+                        <td style="font-size:0.85rem">${c.highest_education_level}</td>
+                        <td>
+                            <a href="/candidates/${c.candidate_id}" class="btn btn-primary btn-sm" style="padding:0.25rem 0.6rem; font-size:0.78rem">Report →</a>
+                        </td>
+                    `;
+                    tbody.appendChild(row);
+                });
+            } else {
+                tbody.innerHTML = `
+                    <tr>
+                        <td colspan="8" style="text-align:center; padding:3rem; color:#64748b">
+                            No match scores calculated yet for this position.<br>
+                            Click <b>"⚡ Run Matching Engine"</b> above to process candidate resumes.
+                        </td>
+                    </tr>
+                `;
+            }
+        } catch(err) {
+            tbody.innerHTML = `<tr><td colspan="8" style="text-align:center; color:#ef4444; padding:2rem">Failed to load rankings.</td></tr>`;
+        }
+
+        // Select all checkbox handler
+        const selectAll = document.getElementById('select-all-compare');
+        if (selectAll) {
+            selectAll.addEventListener('change', () => {
+                document.querySelectorAll('.compare-checkbox').forEach(cb => {
+                    cb.checked = selectAll.checked;
+                });
+            });
+        }
+    });
+</script>
+{% endblock %}

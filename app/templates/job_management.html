@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block page_title %}Job Descriptions & Criteria{% endblock %}
+
+{% block content %}
+<div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem">
+    <div>
+        <h2 style="font-size:1.3rem; font-weight:700; color:#0f172a">Active Job Descriptions</h2>
+        <p style="color:#64748b; font-size:0.875rem">Manage position criteria, required technical competencies, and experience thresholds.</p>
+    </div>
+    <button onclick="openModal('create-job-modal')" class="btn btn-primary">+ Create New Job Posting</button>
+</div>
+
+<!-- Job Cards List -->
+{% if jobs %}
+<div style="display:flex; flex-direction:column; gap:1.25rem">
+    {% for j in jobs %}
+    <div class="card">
+        <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:0.75rem">
+            <div>
+                <div style="display:flex; align-items:center; gap:0.6rem">
+                    <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a">{{ j.title }}</h3>
+                    <span class="badge {% if j.is_active %}badge-excellent{% else %}badge-low{% endif %}">
+                        {{ 'Active' if j.is_active else 'Archived' }}
+                    </span>
+                </div>
+                <div style="font-size:0.85rem; color:#64748b; margin-top:0.2rem">
+                    {{ j.department }} · {{ j.location }} · {{ j.employment_type }} · Min Exp: {{ j.min_experience_years }} yrs · Degree: {{ j.required_education_level }}
+                </div>
+            </div>
+
+            <div style="display:flex; gap:0.5rem">
+                <a href="/ranking?job_id={{ j.id }}" class="btn btn-primary btn-sm">Screen Candidates →</a>
+                <button onclick="deleteJob({{ j.id }})" class="btn btn-secondary btn-sm" style="color:#ef4444">Delete</button>
+            </div>
+        </div>
+
+        <p style="font-size:0.88rem; color:#334155; margin-bottom:1rem; line-height:1.5">
+            {{ j.description[:250] }}{% if j.description|length > 250 %}...{% endif %}
+        </p>
+
+        <!-- Required Skills -->
+        <div style="margin-bottom:0.5rem">
+            <span style="font-size:0.78rem; font-weight:700; color:#475569; text-transform:uppercase; margin-right:0.5rem">Required Skills:</span>
+            {% for s in j.required_skills %}
+            <span class="skill-chip" style="background:#eef2ff; color:#3730a3; font-weight:600">{{ s.skill_name }}</span>
+            {% else %}
+            <span style="font-size:0.8rem; color:#94a3b8">None specified</span>
+            {% endfor %}
+        </div>
+
+        <!-- Preferred Skills -->
+        <div>
+            <span style="font-size:0.78rem; font-weight:700; color:#475569; text-transform:uppercase; margin-right:0.5rem">Preferred Skills:</span>
+            {% for s in j.preferred_skills %}
+            <span class="skill-chip" style="background:#ecfdf5; color:#065f46">{{ s.skill_name }}</span>
+            {% else %}
+            <span style="font-size:0.8rem; color:#94a3b8">None specified</span>
+            {% endfor %}
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="card" style="text-align:center; padding:3rem">
+    <div style="font-size:2.5rem; margin-bottom:0.75rem">📋</div>
+    <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.4rem">No Job Postings Created Yet</h3>
+    <p style="color:#64748b; font-size:0.9rem; max-width:450px; margin:0 auto 1.5rem">
+        Create your first job posting with required skills and criteria to begin AI-powered candidate screening.
+    </p>
+    <button onclick="openModal('create-job-modal')" class="btn btn-primary">+ Create Job Posting</button>
+</div>
+{% endif %}
+
+<!-- Create Job Modal -->
+<div id="create-job-modal" class="modal-overlay">
+    <div class="modal-content">
+        <div class="modal-header">
+            <h3 style="font-weight:700; font-size:1.15rem; color:#0f172a">Create New Job Posting</h3>
+            <button onclick="closeModal('create-job-modal')" style="background:none; border:none; font-size:1.2rem; cursor:pointer">✕</button>
+        </div>
+        <form id="create-job-form">
+            <div class="modal-body">
+                <div class="form-group">
+                    <label class="form-label">Job Title *</label>
+                    <input type="text" id="job-title" class="form-control" placeholder="e.g. Senior Full Stack Engineer" required>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem">
+                    <div class="form-group">
+                        <label class="form-label">Department</label>
+                        <input type="text" id="job-dept" class="form-control" placeholder="Engineering" value="Engineering">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Location</label>
+                        <input type="text" id="job-location" class="form-control" placeholder="Remote / New York" value="Remote">
+                    </div>
+                </div>
+
+                <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem">
+                    <div class="form-group">
+                        <label class="form-label">Employment Type</label>
+                        <select id="job-type" class="form-control">
+                            <option value="Full-time">Full-time</option>
+                            <option value="Part-time">Part-time</option>
+                            <option value="Contract">Contract</option>
+                            <option value="Internship">Internship</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Min. Experience (Years)</label>
+                        <input type="number" id="job-exp" class="form-control" value="3.0" step="0.5" min="0">
+                    </div>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Required Education Level</label>
+                    <select id="job-edu" class="form-control">
+                        <option value="Bachelor">Bachelor's Degree</option>
+                        <option value="Master">Master's Degree</option>
+                        <option value="Ph.D.">Ph.D. / Doctorate</option>
+                        <option value="Associate">Associate Degree / Diploma</option>
+                        <option value="Any">Any / No Requirement</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Required Skills (Comma-separated) *</label>
+                    <input type="text" id="job-req-skills" class="form-control" placeholder="Python, FastAPI, PostgreSQL, Docker" required>
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Preferred / Bonus Skills (Comma-separated)</label>
+                    <input type="text" id="job-pref-skills" class="form-control" placeholder="Kubernetes, Redis, AWS, Next.js">
+                </div>
+
+                <div class="form-group">
+                    <label class="form-label">Job Description *</label>
+                    <textarea id="job-desc" class="form-control" rows="4" placeholder="Detail the core duties, team responsibilities, and expected domain expertise..." required></textarea>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" onclick="closeModal('create-job-modal')" class="btn btn-secondary">Cancel</button>
+                <button type="submit" id="save-job-btn" class="btn btn-primary">Save Job Posting</button>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.getElementById('create-job-form').addEventListener('submit', async (e) => {
+        e.preventDefault();
+        const btn = document.getElementById('save-job-btn');
+        btn.disabled = true;
+        btn.innerText = 'Saving...';
+
+        const reqSkills = document.getElementById('job-req-skills').value.split(',').map(s => s.trim()).filter(Boolean);
+        const prefSkills = document.getElementById('job-pref-skills').value.split(',').map(s => s.trim()).filter(Boolean);
+
+        const payload = {
+            title: document.getElementById('job-title').value.trim(),
+            department: document.getElementById('job-dept').value.trim(),
+            location: document.getElementById('job-location').value.trim(),
+            employment_type: document.getElementById('job-type').value,
+            min_experience_years: parseFloat(document.getElementById('job-exp').value) || 0.0,
+            required_education_level: document.getElementById('job-edu').value,
+            required_skills: reqSkills,
+            preferred_skills: prefSkills,
+            description: document.getElementById('job-desc').value.trim(),
+            is_active: true
+        };
+
+        try {
+            const res = await authFetch('/api/jobs', {
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            const data = await res.json();
+            if (res.ok) {
+                showToast('Job posting created successfully!', 'success');
+                setTimeout(() => window.location.reload(), 500);
+            } else {
+                showToast(data.detail || 'Failed to create job posting.', 'error');
+            }
+        } catch(err) {
+            showToast('Network error while saving job.', 'error');
+        } finally {
+            btn.disabled = false;
+            btn.innerText = 'Save Job Posting';
+        }
+    });
+
+    async function deleteJob(id) {
+        if (!confirm('Are you sure you want to delete this job posting? All calculated match results will also be deleted.')) return;
+        try {
+            const res = await authFetch(`/api/jobs/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                showToast('Job posting deleted.', 'info');
+                setTimeout(() => window.location.reload(), 400);
+            } else {
+                showToast('Failed to delete job.', 'error');
+            }
+        } catch(e) {
+            showToast('Error deleting job.', 'error');
+        }
+    }
+</script>
+{% endblock %}

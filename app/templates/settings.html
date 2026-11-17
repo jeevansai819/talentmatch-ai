@@ -1,0 +1,110 @@
+{% extends "base.html" %}
+
+{% block page_title %}Platform Settings & Scoring Model{% endblock %}
+
+{% block content %}
+<div style="max-width:850px; margin:0 auto">
+    <div style="margin-bottom:1.5rem">
+        <h2 style="font-size:1.3rem; font-weight:700; color:#0f172a">Platform Configuration</h2>
+        <p style="color:#64748b; font-size:0.875rem">Inspect AI matching weights, NLP taxonomy coverage, and system operational parameters.</p>
+    </div>
+
+    <!-- Scoring Weights Card -->
+    <div class="card" style="margin-bottom:1.75rem">
+        <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.25rem">Deterministic Scoring Weights</h3>
+        <p style="font-size:0.85rem; color:#64748b; margin-bottom:1.25rem">
+            Candidate compatibility is evaluated across 5 weighted dimensions totaling exactly 100%.
+        </p>
+
+        <div style="display:flex; flex-direction:column; gap:1rem">
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:600; margin-bottom:0.35rem">
+                    <span>1. Required Technical Skills Match</span>
+                    <span style="color:#4f46e5">{{ weights.required_skills }}%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width:{{ weights.required_skills }}%; background:#4f46e5"></div>
+                </div>
+                <div style="font-size:0.78rem; color:#64748b; margin-top:0.25rem">Mandatory competencies identified in the job specification.</div>
+            </div>
+
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:600; margin-bottom:0.35rem">
+                    <span>2. Preferred / Bonus Skills Match</span>
+                    <span style="color:#0ea5e9">{{ weights.preferred_skills }}%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width:{{ weights.preferred_skills }}%; background:#0ea5e9"></div>
+                </div>
+                <div style="font-size:0.78rem; color:#64748b; margin-top:0.25rem">Nice-to-have tools, domain frameworks, and secondary proficiencies.</div>
+            </div>
+
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:600; margin-bottom:0.35rem">
+                    <span>3. Work Experience Duration</span>
+                    <span style="color:#10b981">{{ weights.experience }}%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width:{{ weights.experience }}%; background:#10b981"></div>
+                </div>
+                <div style="font-size:0.78rem; color:#64748b; margin-top:0.25rem">Candidate verified years of experience compared against required minimums.</div>
+            </div>
+
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:600; margin-bottom:0.35rem">
+                    <span>4. Educational Qualifications</span>
+                    <span style="color:#f59e0b">{{ weights.education }}%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width:{{ weights.education }}%; background:#f59e0b"></div>
+                </div>
+                <div style="font-size:0.78rem; color:#64748b; margin-top:0.25rem">Hierarchical evaluation of candidate degree level vs required degree level.</div>
+            </div>
+
+            <div>
+                <div style="display:flex; justify-content:space-between; font-size:0.9rem; font-weight:600; margin-bottom:0.35rem">
+                    <span>5. Textual / Semantic TF-IDF Similarity</span>
+                    <span style="color:#8b5cf6">{{ weights.text_similarity }}%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" style="width:{{ weights.text_similarity }}%; background:#8b5cf6"></div>
+                </div>
+                <div style="font-size:0.78rem; color:#64748b; margin-top:0.25rem">Cosine similarity between resume text corpus and job posting description.</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- AI Ethics & Fair Hiring Card -->
+    <div class="card" style="margin-bottom:1.75rem">
+        <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.5rem">Ethical AI & Compliance Safeguards</h3>
+        <p style="font-size:0.88rem; color:#475569; line-height:1.6">
+            TalentMatch AI is strictly architected to adhere to fair hiring standards:
+        </p>
+        <ul style="font-size:0.85rem; color:#334155; padding-left:1.25rem; margin-top:0.5rem; line-height:1.6">
+            <li><b>Zero Demographic Attributes:</b> Race, gender, religion, caste, nationality, and age are excluded from candidate matching algorithms.</li>
+            <li><b>Distinction of Missing Data:</b> Unconfirmed attributes are represented as unavailable rather than penalizing candidates as mismatches.</li>
+            <li><b>Human Decision-Support:</b> Match scores provide explainable alignment insights, serving as informational indicators rather than automated hiring decisions.</li>
+            <li><b>Data Confidentiality:</b> Resumes are processed locally in private storage without transmitting personal data to third-party generative APIs.</li>
+        </ul>
+    </div>
+
+    <!-- System Architecture Details -->
+    <div class="card">
+        <h3 style="font-size:1.15rem; font-weight:700; color:#0f172a; margin-bottom:0.75rem">Engine Diagnostics</h3>
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; font-size:0.85rem">
+            <div style="padding:0.75rem; background:#f8fafc; border-radius:8px">
+                <b>PDF Engine:</b> PyMuPDF 1.28.2 (Native C-MuPDF)
+            </div>
+            <div style="padding:0.75rem; background:#f8fafc; border-radius:8px">
+                <b>NLP Parser:</b> Boundary Regex + Taxonomy Engine
+            </div>
+            <div style="padding:0.75rem; background:#f8fafc; border-radius:8px">
+                <b>Vector Engine:</b> Smooth-IDF TF-IDF Vectorizer
+            </div>
+            <div style="padding:0.75rem; background:#f8fafc; border-radius:8px">
+                <b>PDF Reporter:</b> ReportLab 5.1.0 Executive Builder
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
